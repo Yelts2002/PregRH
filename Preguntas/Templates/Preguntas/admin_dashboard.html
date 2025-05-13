@@ -186,14 +186,10 @@
                             <td>{{ pregunta.nivel }}</td>
                             <td>{{ pregunta.fecha_creacion|date:"Y-m-d H:i:s" }}</td>
                             <td>
-                                <a href="#"
-                                   class="btn btn-info btn-sm load-preview"
-                                   title="Vista Previa"
-                                   data-id="{{ pregunta.id }}"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#previewModal">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                                <button type="button" class="btn btn-info btn-sm" aria-label="Vista previa pregunta {{ pregunta.id }}" data-bs-toggle="modal" data-bs-target="#previewModal" onclick="cargarVistaPrevia({{ pregunta.id }})" >
+                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Vista previa</span>
+                                </button>
                             </td>
                         </tr>
                         {% empty %}
@@ -271,27 +267,40 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
     
-function loadPreview(preguntaId) {
-    fetch(`/preguntas/vista_previa/${preguntaId}/`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Error en la respuesta del servidor: " + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Vista previa response:", data);
-            var modalBody = document.getElementById("modalBody");
-            if (data.docx_text && data.docx_text.trim() !== "") {
-                modalBody.innerHTML = `<h4>${data.pregunta_nombre}</h4>${data.docx_text}`;
-            } else {
-                modalBody.innerHTML = `<h4>${data.pregunta_nombre}</h4><p>No hay contenido disponible.</p>`;
-            }
-        })
-        .catch(error => {
-            console.error("Error loading preview:", error);
-            document.getElementById("modalBody").innerHTML = "<p class='text-danger'>Error al cargar el contenido.</p>";
-        });
+async function cargarVistaPrevia(preguntaId) {
+    const modalBody = document.getElementById('modalBody');
+
+    // mostrar spinner mientras carga
+    modalBody.innerHTML = `
+      <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando vista previa...</span>
+        </div>
+      </div>
+    `;
+
+    try {
+      const response = await fetch(`/preguntas/vista-previa/${preguntaId}/`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const data = await response.json();
+
+      // inyecta el iframe que devuelve Django
+      modalBody.innerHTML = data.docx_html;
+
+      // si usas MathJax u otro renderizador, puedes refrescarlo:
+      if (window.MathJax) {
+        MathJax.typesetPromise();
+      }
+    } catch (error) {
+      console.error("Error en la carga de la vista previa:", error);
+      modalBody.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Error al cargar la vista previa.
+        </div>
+        <p class="text-muted small">Detalles técnicos: ${error.message}</p>
+      `;
+    }
 }
 </script>
 

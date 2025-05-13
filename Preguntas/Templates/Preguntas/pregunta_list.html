@@ -134,7 +134,7 @@
                                     <td>{{ pregunta.universidad.nombre }}</td>
                                     <td>{{ pregunta.tema.nombre }}</td>
                                     <td>
-                                        <span class="badge bg-{% if pregunta.nivel == 'bajo' %}success{% elif pregunta.nivel == 'medio' %}warning text-dark{% elif pregunta.nivel == 'alto' %}danger{% else %}secondary{% endif %}">
+                                        <span class="badge" style="color: white; background-color: #007bff; padding: 5px 10px; border-radius: 5px;">
                                             {{ pregunta.nivel }}
                                         </span>
                                     </td>
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     temaSel.addEventListener('change', () => form.submit());
 });
 
-  async function cargarVistaPrevia(preguntaId) {
+async function cargarVistaPrevia(preguntaId) {
     const modalBody = document.getElementById('modalBody');
 
     // mostrar spinner mientras carga
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <p class="text-muted small">Detalles técnicos: ${error.message}</p>
       `;
     }
-  }
+}
 </script>
 {% endblock %}
 

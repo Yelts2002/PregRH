@@ -135,8 +135,9 @@
                                         <td class="text-center">{{ pregunta.fecha_creacion|date:"Y-m-d" }}</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
-                                                <button type="button" class="btn btn-info btn-sm" title="Vista Previa" aria-label="Vista previa de {{ pregunta.nombre }}" onclick="loadPreview('{{ pregunta.id }}')" data-bs-toggle="modal" data-bs-target="#previewModal">
-                                                    <i class="fas fa-eye"></i>
+                                                <button type="button" class="btn btn-info btn-sm" aria-label="Vista previa pregunta {{ pregunta.id }}" data-bs-toggle="modal" data-bs-target="#previewModal" onclick="cargarVistaPrevia({{ pregunta.id }})" >
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                    <span class="visually-hidden">Vista previa</span>
                                                 </button>
                                                 <a href="{% url 'pregunta-update' pregunta.pk %}" class="btn btn-warning btn-sm" title="Editar pregunta" aria-label="Editar {{ pregunta.nombre }}">
                                                     <i class="fas fa-edit"></i>
@@ -378,19 +379,20 @@
         });
 
         // Cargar vista previa y guardar el ID de la pregunta
-        window.loadPreview = function(preguntaId) {
+        window.cargarVistaPrevia = async function(preguntaId) {
             preguntaIdActual = preguntaId;  // Guardar ID actual
             
+            const modalBody = document.getElementById("modalBody");
             // Mostrar el spinner de carga
-            document.getElementById("modalBody").innerHTML = `
-                <div class="d-flex justify-content-center">
+            modalBody.innerHTML = `
+                <div class="d-flex justify-content-center py-5">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
+                        <span class="visually-hidden">Cargando vista previa...</span>
                     </div>
                 </div>
-                <p class="text-center mt-2">Cargando contenido...</p>
+                <p class="text-center text-muted">Cargando contenido...</p>
             `;
-            
+
             // Verificar si la pregunta ya está en el carrito y actualizar el botón
             const btnAgregarCarrito = document.getElementById("btnAgregarCarrito");
             if (preguntaEnCarrito(preguntaId)) {
@@ -404,29 +406,25 @@
                 btnAgregarCarrito.classList.remove('btn-secondary');
                 btnAgregarCarrito.classList.add('btn-success');
             }
-            
-            fetch(`/preguntas/vista_previa/${preguntaId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error HTTP: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById("modalBody").innerHTML = `
-                        <h3 class="h4 mb-3">${data.pregunta_nombre}</h3>
-                        <div class="pregunta-contenido">${data.docx_text || "<p>No hay contenido disponible.</p>"}</div>
-                    `;
-                })
-                .catch(error => {
-                    console.error("Error al cargar la vista previa:", error);
-                    document.getElementById("modalBody").innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el contenido. 
-                            Por favor intenta nuevamente.
-                        </div>
-                    `;
-                });
+
+            // Petición al backend
+            try {
+                const response = await fetch(`/preguntas/vista-previa/${preguntaId}/`);
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                
+                const data = await response.json();
+                // Inyecta el contenido devuelto por Django
+                modalBody.innerHTML = data.docx_html; // Cambiar aquí para usar 'docx_html'
+            } catch (error) {
+                console.error("Error en la carga de la vista previa:", error);
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar la vista previa.
+                    </div>
+                    <p class="text-muted small">Detalles técnicos: ${error.message}</p>
+                `;
+            }
         }
 
         // Añadir pregunta al carrito desde la vista previa

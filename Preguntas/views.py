@@ -887,7 +887,7 @@ def export_preguntas_recientes(request):
     response.write(u'﻿'.encode('utf8'))
 
     fieldnames = ['Usuario', 'Universidad', 'Curso', 'Tema', 'Nivel', 'Fecha de Creación']
-    writer = csv.DictWriter(response, fieldnames=fieldnames, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer = csv.DictWriter(response, fieldnames=fieldnames, delimiter=",", quoting=csv.QUOTE_MINIMAL)
 
     writer.writeheader()
     writer.writerows({

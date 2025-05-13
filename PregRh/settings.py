@@ -33,8 +33,11 @@ SECRET_KEY = 'django-insecure-pk5o*^zd1+v(5=!us^pbch6+m4rd_7=mggueb^+1^$e!)1d8hx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','.ngrok-free.app']
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://d4a8-2803-a3e0-1843-380-f4cf-432c-c1e6-3b9a.ngrok-free.app"
+]
 
 LOGIN_URL = '/accounts/login/'  # Página de login
 LOGIN_REDIRECT_URL = 'home'  # Redirige al home después del login
